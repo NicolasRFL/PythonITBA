@@ -179,8 +179,8 @@ def exportarAcsv(listaDatos,x,idx,nombreDoc):
         for i in range(len(listaDatos)):
             f.write(str(np.round(listaDatos[i][0][j],2)))
             f.write(';')
-            if len(idx)>0 & listaDatos[i][0][j] in idx:
-                escrInter=True
+            if (listaDatos[i][0][j].size>0) & (idx[i].size>0):
+                escrInter=(listaDatos[i][0][j] in idx[i])
         if escrInter:
             f.write('interseccion;')
         f.write('\n')
@@ -200,7 +200,7 @@ def graficoDerivada(lista,intervalo,fechaInicio):
     for dato in range (1,len(listaAcciones)):
         listaAcciones[dato][0]=listaAcciones[dato][0]-listaAcciones[dato-1][0]
     for dato in range (0,len(listaAcciones)):
-        plt.plot(data['Date'],listaAcciones[dato][0],linewidth=2)   
+        plt.plot(data['Date'],listaAcciones[dato][0],label=listaAcciones[dato][1],linewidth=2)   
     accionesYaGraficadas=[] 
     idxl=[]
     for lista1 in listaAcciones:
