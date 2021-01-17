@@ -3,19 +3,33 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 import sys
 
+
 class MainWindow(QMainWindow):
 
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
         self.originalPalette = QApplication.palette()
-        self.createTopLeftGroupBox()
-        
-        self.setCentralWidget(self.topLeftGroupBox)
+        self.createTipoGrafico()
+        #self.createCantEmpresas()
+        #self.createFecha()
+        #self.createIntervalo()
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.tipoGrafico)
+        #layout.addWidget(self.cantEmpresas)
+        #layout.addWidget(self.nombreEmpresas)
+        #layout.addWidget(self.fecha)
+        #layout.addWidget(self.intervlo)
+
+        widget = QWidget()
+        widget.setLayout(layout)
+
+        self.setCentralWidget(widget)
         self.setWindowTitle("Styles")
 
 
-    def createTopLeftGroupBox(self):
-        self.topLeftGroupBox = QGroupBox("Tipo de gráfico")
+    def createTipoGrafico(self):
+        self.tipoGrafico= QGroupBox("Tipo de gráfico")
 
         accion = QRadioButton("Graficar Acciones")
         derivada = QRadioButton("Graficar Derivada")
@@ -25,11 +39,12 @@ class MainWindow(QMainWindow):
         layout = QVBoxLayout()
         layout.addWidget(accion)
         layout.addWidget(derivada)
-        self.topLeftGroupBox.setLayout(layout)    
+        self.tipoGrafico.setLayout(layout)    
 
-    def createComboBox(self):
-        styleComboBox = QComboBox()
-        styleComboBox.addItems(QStyleFactory.keys())
+    def createCantEmpresas(self):
+        self.cantEmpresas = QGroupBox("Cantidad Empresas")
+        comboBoxCant = QComboBox()
+        comboBoxCant.addItems(QStyleFactory.keys())
 
         styleLabel = QLabel("Graficador acciones:")
         styleLabel.setBuddy(styleComboBox)
