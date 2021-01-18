@@ -10,14 +10,36 @@ class graficador():
     def __init__(self):
         self.nombreEmpresas=[]
         self.cantEmpresas=2
+        self.cantLimiteEmpresas=5
         self.tipoGrafico=0
+        self.listaFechas={'dia anterior':'1d','5 dias':'5d','1 mes':'1mo','3 meses':'3mo','6 meses':'6mo','1 año':'1y','2 años':'2y',
+    '5 años':'5y','10 años':'10y','historia completa':'max'}
         self.fecha=0
         self.intervalo=0
+        self.opcionesIntervalo={'un dia':'1d','cinco dias':'5d','una semana':'1wk','un mes':'1mo','tres meses':'3mo'}
         self.empresas={'Amazon':'AMZN','Microsoft':'MSFT','Apple':'AAPL','Tesla':'TSLA','Johnson & Johnson':'JNJ','Google':'GOOGL',
         'Nvidia':'NVDA','JP Morgan':'JPM','Netflix':'NFLX','Coca cola':'KO','Pfizer':'PFE','Banco Santander Rio':'BRIO'}
         self.nombreGrafico='grafico'
         self.nombreCSV='salida'
         self.dicGraficar = {0:self.graficoAccionesFuncionTiempo,1:self.graficoDerivada}
+
+    def setTipoGrafico(self,n):
+        self.tipoGrafico = n
+
+    def getEmpresas(self):
+        return self.empresas
+
+    def getOpcionesIntervalo(self):
+        return self.opcionesIntervalo
+
+    def getCantEmpresas(self):
+        return self.cantEmpresas
+
+    def getCantLimiteEmpresas(self):
+        return self.cantLimiteEmpresas
+
+    def getFechas(self):
+        return self.listaFechas
 
     def graficar(self):
         self.dicGraficar[self.tipoGrafico]()
