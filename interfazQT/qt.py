@@ -3,6 +3,9 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 import sys
 import claseGraficador
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 
 class MainWindow(QMainWindow):
 
@@ -14,17 +17,23 @@ class MainWindow(QMainWindow):
         self.originalPalette = QApplication.palette()
         self.createTipoGrafico()
         self.createCantEmpresas()
-        self.createNombreEmpresas()
+        self.createNombreEmpresas(self.grafica.getCantMinimaEmpresas())
         self.createFecha()
         self.createIntervalo()
         self.createGrafico()
 
+        self.tipoGrafico = ''
+        self.cantEmpresas = 0
+        self.nombreEmpresas = []
+        self.fecha = '1d'
+        self.intervalo = '1d'
+
         layout = QGridLayout()
-        layout.addWidget(self.tipoGrafico,1,1)
-        layout.addWidget(self.cantEmpresas,1,2)
-        layout.addWidget(self.nombreEmpresas,1,3)
-        layout.addWidget(self.fecha,1,4)
-        layout.addWidget(self.intervalo,1,5)
+        layout.addWidget(self.widgetTipoGrafico,1,1)
+        layout.addWidget(self.widgetCantEmpresas,1,2)
+        layout.addWidget(self.widgetNombreEmpresas,1,3)
+        layout.addWidget(self.fechaWidget,1,4)
+        layout.addWidget(self.intervaloWidget,1,5)
         layout.addWidget(self.grafico,2,1,4,5)
 
         widget = QWidget()
@@ -35,71 +44,117 @@ class MainWindow(QMainWindow):
 
 
     def createTipoGrafico(self):
-        self.tipoGrafico= QGroupBox("Tipo de gráfico")
+        self.widgetTipoGrafico= QGroupBox("Tipo de gráfico")
 
         accion = QRadioButton("Graficar Acciones")
+        accion.grafico = 'acciones'
         derivada = QRadioButton("Graficar Derivada")
+        derivada.grafico = 'derivada'
+        accion.toggled.connect(self.radioButtonToggle)
+        derivada.toggled.connect(self.radioButtonToggle)
         accion.setChecked(True)
 
 
         layout = QVBoxLayout()
         layout.addWidget(accion)
         layout.addWidget(derivada)
-        self.tipoGrafico.setLayout(layout)    
+        self.widgetTipoGrafico.setLayout(layout)    
+
+    def radioButtonToggle(self):
+        radioButton = self.sender()
+        if radioButton.isChecked():
+            self.grafica.setTipoGrafico(radioButton.grafico)
 
     def createCantEmpresas(self):
-        self.cantEmpresas = QGroupBox("Cantidad Empresas")
+        self.widgetCantEmpresas = QGroupBox("Cantidad Empresas")
         comboBoxCant = QComboBox()
         for x in range(2,5):
             comboBoxCant.addItem(str(x))
-
+        comboBoxCant.activated[str].connect(self.cambiarCantEmpresas)
         layout = QVBoxLayout()
         layout.addWidget(comboBoxCant)
-        self.cantEmpresas.setLayout(layout)
+        self.widgetCantEmpresas.setLayout(layout)
+        
+    def cambiarCantEmpresas(self,cant):
+        self.cantEmpresas = int(cant)
+        for w in range(len(self.widgetEmpresas)):
+            if w<int(cant):
+                self.widgetEmpresas[w].show()
+            else:
+                self.widgetEmpresas[w].hide()
+        self.actualizarNombresEmpresas()
 
-        #styleLabel = QLabel("Graficador acciones:")
-        #styleComboBox.activated[str].connect(self.changeStyle)
-
-    def createNombreEmpresas(self):
-        self.nombreEmpresas = QGroupBox("Nombre de las empresas")
+    def createNombreEmpresas(self,n):
+        self.widgetNombreEmpresas = QGroupBox("Nombre de las empresas")
+        self.widgetEmpresas = []
         layout = QVBoxLayout()
-        for x in range(self.grafica.getCantLimiteEmpresas()):
+        listaNombres = [*self.grafica.getEmpresas()]
+        for x in range(self.grafica.getCantMaximaEmpresas()):
             comboBoxNombres = QComboBox()
-            comboBoxNombres.addItems(self.grafica.getEmpresas().keys())
-            if x>1:
-                comboBoxNombres.hide()
+            comboBoxNombres.addItems(listaNombres)
+            comboBoxNombres.activated[str].connect(self.actualizarNombresEmpresas)
             layout.addWidget(comboBoxNombres)
-        self.nombreEmpresas.setLayout(layout)
+            if x>=self.grafica.getCantMinimaEmpresas():
+                comboBoxNombres.hide()
+            self.widgetEmpresas.append(comboBoxNombres)
+        self.widgetNombreEmpresas.setLayout(layout)
 
-        #styleLabel = QLabel("Graficador acciones:")
-        #styleComboBox.activated[str].connect(self.changeStyle)
+    def actualizarNombresEmpresas(self):
+        self.nombreEmpresas=[]
+        for w in self.widgetEmpresas:
+            if w.isVisible():
+                self.nombreEmpresas.append(str(w.currentText()))
 
     def createFecha(self):
-        self.fecha = QGroupBox("Seleccionar Fecha")
+        self.fechaWidget = QGroupBox("Seleccionar Fecha")
         comboBoxFecha = QComboBox()
         comboBoxFecha.addItems(self.grafica.getFechas().keys())
+        comboBoxFecha.activated[str].connect(self.actualizarFecha)
         layout = QVBoxLayout()
         layout.addWidget(comboBoxFecha)
-        self.fecha.setLayout(layout)
+        self.fechaWidget.setLayout(layout)
+
+    def actualizarFecha(self,n):
+        self.fecha=self.grafica.getFechas()[str(n)]
 
     def createIntervalo(self):
-        self.intervalo = QGroupBox("Seleccionar Intervalo")
+        self.intervaloWidget = QGroupBox("Seleccionar Intervalo")
         comboBoxIntervalo = QComboBox()
         comboBoxIntervalo.addItems(self.grafica.getOpcionesIntervalo().keys())
-
+        comboBoxIntervalo.activated[str].connect(self.actualizarIntervalo)
         layout = QVBoxLayout()
         layout.addWidget(comboBoxIntervalo)
-        self.intervalo.setLayout(layout)
+        self.intervaloWidget.setLayout(layout)
+
+    def actualizarIntervalo(self,text):
+        self.intervalo=self.grafica.getOpcionesIntervalo()[str(text)]
 
     def createGrafico(self):
         self.grafico = QGroupBox("Gráfico")
-        graff = QLabel()
-        pixmap = QPixmap(r'C:\Users\Nicolas\Documents\GitHub\PythonITBA\acciones.png').scaled(640, 640, Qt.KeepAspectRatio)
-        graff.setPixmap(pixmap)
+        # a figure instance to plot on
+        self.figure = plt.figure()
 
+        # this is the Canvas Widget that displays the `figure`
+        # it takes the `figure` instance as a parameter to __init__
+        canvas = FigureCanvas(self.figure)
+
+        # this is the Navigation widget
+        # it takes the Canvas widget and a parent
+        toolbar = NavigationToolbar(canvas, self)
+
+        # Just some button connected to `plot` method
+        button = QPushButton('Plot')
+        button.clicked.connect(self.plot)
+        
         layout = QVBoxLayout()
-        layout.addWidget(graff)
+        layout.addWidget(toolbar)
+        layout.addWidget(canvas)
+        layout.addWidget(button)
+
         self.grafico.setLayout(layout)
+
+    def plot(self):
+        self.tipoGrafico
 
 
 if __name__ == '__main__':
