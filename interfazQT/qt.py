@@ -14,6 +14,12 @@ class MainWindow(QMainWindow):
 
         self.grafica = claseGraficador.graficador()
 
+        self.tipoGrafico = ''
+        self.cantEmpresas = 0
+        self.nombreEmpresas = []
+        self.fecha = '1d'
+        self.intervalo = '1d'
+
         self.originalPalette = QApplication.palette()
         self.createTipoGrafico()
         self.createCantEmpresas()
@@ -22,25 +28,23 @@ class MainWindow(QMainWindow):
         self.createIntervalo()
         self.createGrafico()
 
-        self.tipoGrafico = ''
-        self.cantEmpresas = 0
-        self.nombreEmpresas = []
-        self.fecha = '1d'
-        self.intervalo = '1d'
+        self.crearEstructura()
+        
+        self.setWindowTitle("Styles")
 
+    def crearEstructura(self):
         layout = QGridLayout()
         layout.addWidget(self.widgetTipoGrafico,1,1)
         layout.addWidget(self.widgetCantEmpresas,1,2)
         layout.addWidget(self.widgetNombreEmpresas,1,3)
         layout.addWidget(self.fechaWidget,1,4)
         layout.addWidget(self.intervaloWidget,1,5)
-        layout.addWidget(self.grafico,2,1,4,5)
+        layout.addWidget(self.widgetGrafico,2,1,4,5)
 
         widget = QWidget()
         widget.setLayout(layout)
 
         self.setCentralWidget(widget)
-        self.setWindowTitle("Styles")
 
 
     def createTipoGrafico(self):
@@ -53,7 +57,7 @@ class MainWindow(QMainWindow):
         accion.toggled.connect(self.radioButtonToggle)
         derivada.toggled.connect(self.radioButtonToggle)
         accion.setChecked(True)
-
+        accion.toggle()
 
         layout = QVBoxLayout()
         layout.addWidget(accion)
@@ -63,7 +67,7 @@ class MainWindow(QMainWindow):
     def radioButtonToggle(self):
         radioButton = self.sender()
         if radioButton.isChecked():
-            self.grafica.setTipoGrafico(radioButton.grafico)
+            self.tipoGrafico = radioButton.grafico
 
     def createCantEmpresas(self):
         self.widgetCantEmpresas = QGroupBox("Cantidad Empresas")
@@ -89,21 +93,27 @@ class MainWindow(QMainWindow):
         self.widgetEmpresas = []
         layout = QVBoxLayout()
         listaNombres = [*self.grafica.getEmpresas()]
+        c=0
         for x in range(self.grafica.getCantMaximaEmpresas()):
             comboBoxNombres = QComboBox()
             comboBoxNombres.addItems(listaNombres)
             comboBoxNombres.activated[str].connect(self.actualizarNombresEmpresas)
             layout.addWidget(comboBoxNombres)
+            comboBoxNombres.setCurrentIndex(c)
+            c+=1
+            self.widgetEmpresas.append(comboBoxNombres)
             if x>=self.grafica.getCantMinimaEmpresas():
                 comboBoxNombres.hide()
-            self.widgetEmpresas.append(comboBoxNombres)
+            else:
+                self.nombreEmpresas.append(self.grafica.getEmpresas()[str(comboBoxNombres.currentText())])
         self.widgetNombreEmpresas.setLayout(layout)
 
     def actualizarNombresEmpresas(self):
         self.nombreEmpresas=[]
         for w in self.widgetEmpresas:
-            if w.isVisible():
-                self.nombreEmpresas.append(str(w.currentText()))
+            if (w.isVisible()) & (self.grafica.getEmpresas()[str(w.currentText())] not in self.nombreEmpresas):
+                self.nombreEmpresas.append(self.grafica.getEmpresas()[str(w.currentText())])
+
 
     def createFecha(self):
         self.fechaWidget = QGroupBox("Seleccionar Fecha")
@@ -116,46 +126,63 @@ class MainWindow(QMainWindow):
 
     def actualizarFecha(self,n):
         self.fecha=self.grafica.getFechas()[str(n)]
+        self.createIntervalo()
+        self.crearEstructura()
 
     def createIntervalo(self):
         self.intervaloWidget = QGroupBox("Seleccionar Intervalo")
         comboBoxIntervalo = QComboBox()
-        comboBoxIntervalo.addItems(self.grafica.getOpcionesIntervalo().keys())
+        comboBoxIntervalo.addItems(self.grafica.getIntervaloConFechas()[self.fecha])
         comboBoxIntervalo.activated[str].connect(self.actualizarIntervalo)
         layout = QVBoxLayout()
         layout.addWidget(comboBoxIntervalo)
         self.intervaloWidget.setLayout(layout)
+        self.intervalo = self.grafica.getOpcionesIntervalo()[str(comboBoxIntervalo.currentText())]
 
     def actualizarIntervalo(self,text):
         self.intervalo=self.grafica.getOpcionesIntervalo()[str(text)]
 
     def createGrafico(self):
-        self.grafico = QGroupBox("Gráfico")
+        self.widgetGrafico = QGroupBox("Gráfico")
         # a figure instance to plot on
         self.figure = plt.figure()
 
         # this is the Canvas Widget that displays the `figure`
         # it takes the `figure` instance as a parameter to __init__
-        canvas = FigureCanvas(self.figure)
+        self.canvas = FigureCanvas(self.figure)
 
         # this is the Navigation widget
         # it takes the Canvas widget and a parent
-        toolbar = NavigationToolbar(canvas, self)
+        self.toolbar = NavigationToolbar(self.canvas, self)
 
         # Just some button connected to `plot` method
         button = QPushButton('Plot')
         button.clicked.connect(self.plot)
         
         layout = QVBoxLayout()
-        layout.addWidget(toolbar)
-        layout.addWidget(canvas)
+        layout.addWidget(self.toolbar)
+        layout.addWidget(self.canvas)
         layout.addWidget(button)
 
-        self.grafico.setLayout(layout)
+        self.widgetGrafico.setLayout(layout)
 
     def plot(self):
-        self.tipoGrafico
+        self.figure.clear()
+        ax = self.figure.add_subplot(111)
+        if len(self.nombreEmpresas)<2:
+            self.lanzarError('Error, se necesitan seleccionar por lo menos 2 empresas distintas.','Una sola empresa elegida')
+        else:            
+            self.grafica.dicGraficar[self.tipoGrafico](self.nombreEmpresas,self.fecha,self.intervalo,ax) 
+            self.canvas.draw()
 
+    def lanzarError(self,mensaje,nombre):
+        dialog = QMessageBox()
+        dialog.setAttribute(Qt.WA_DeleteOnClose)
+        dialog.setModal(True)
+        dialog.setIcon(QMessageBox.Warning)
+        dialog.setText(mensaje)
+        dialog.setWindowTitle(nombre)
+        dialog.exec_()
 
 if __name__ == '__main__':
     # Create the Qt Application
