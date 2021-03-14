@@ -179,7 +179,7 @@ def exportarAcsv(listaDatos,x,idx,nombreDoc):
         for i in range(len(listaDatos)):
             f.write(str(np.round(listaDatos[i][0][j],2)))
             f.write(';')
-            if (listaDatos[i][0][j].size>0) & (idx[i].size>0):
+            if (listaDatos[i][0][j].size>0) & (len(idx)>0):
                 escrInter=(listaDatos[i][0][j] in idx[i])
         if escrInter:
             f.write('interseccion;')

@@ -18,14 +18,14 @@ class graficador():
             '1mo':['1 dia','5 dias','1 semana'],
             '3mo':['1 dia','5 dias','1 semana','1 mes'],
             '6mo':['1 dia','5 dias','1 semana','1 mes','3 meses'],
-            '1y':['1 dia','5 dias','1 semana','1 mes','3 meses','6 meses'],
-            '2y':['1 dia','5 dias','1 semana','1 mes','3 meses','6 meses'],
-            '5y':['1 dia','5 dias','1 semana','1 mes','3 meses','6 meses'],
-            '10y':['1 dia','5 dias','1 semana','1 mes','3 meses','6 meses'],
-            'max':['1 dia','5 dias','1 semana','1 mes','3 meses','6 meses']
+            '1y':['1 dia','1 semana','1 mes','3 meses'],
+            '2y':['1 dia','1 semana','1 mes','3 meses'],
+            '5y':['1 dia','1 semana','1 mes','3 meses'],
+            '10y':['1 dia','1 semana','1 mes','3 meses'],
+            'max':['1 dia','1 semana','1 mes','3 meses']
         }
         self.opcionesIntervalo={'1 minuto':'1m','5 minutos':'5m','15 minutos':'15m','30 minutos':'30m','1 Hora':'60m'
-        ,'1 dia':'1d','5 dias':'5d','1 semana':'1wk','1 mes':'1mo','3 meses':'3mo','6 meses':'6mo'}
+        ,'1 dia':'1d','5 dias':'5d','1 semana':'1wk','1 mes':'1mo','3 meses':'3mo'}
         self.empresas={'Amazon':'AMZN','Microsoft':'MSFT','Apple':'AAPL','Tesla':'TSLA','Johnson & Johnson':'JNJ','Google':'GOOGL',
         'Nvidia':'NVDA','JP Morgan':'JPM','Netflix':'NFLX','Coca cola':'KO','Pfizer':'PFE','Banco Santander Rio':'BRIO'}
         self.nombreGrafico='grafico'
@@ -78,6 +78,7 @@ class graficador():
         exportarAcsv(listaDatos,x,idxl,self.nombreCSV+'.csv')
         ax.set_xlabel('FECHA', fontsize=20)
         ax.set_ylabel('VALOR', fontsize=20)
+        ax.grid()
         ax.legend()
     
 

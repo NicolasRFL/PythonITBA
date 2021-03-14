@@ -30,7 +30,7 @@ class MainWindow(QMainWindow):
 
         self.crearEstructura()
         
-        self.setWindowTitle("Styles")
+        self.setWindowTitle("Graficador acciones")
 
     def crearEstructura(self):
         layout = QGridLayout()
